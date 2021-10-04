@@ -31,11 +31,16 @@ interface TableRow {
 
     // sub to channels and set unsub timers
     logger.info('subscribing to channels');
+    const timerWaitProms: Promise<void>[] = [];
     const subProms = instances.map(async instance => {
         await instance.subToChannel(config.channelName);
-        setTimeout(() => {
-            instance.unsubscribe(config.channelName);
-        }, config.listenTime * 1000);
+        const timerProm = new Promise<void>(resolve =>
+            setTimeout(() => {
+                instance.unsubscribe(config.channelName);
+                resolve();
+            }, config.listenTime * 1000)
+        );
+        timerWaitProms.push(timerProm);
     });
     await Promise.all(subProms);
 
@@ -55,21 +60,7 @@ interface TableRow {
 
     // wait for all messages to be received
     logger.info('waiting for all messages to be received');
-    const waitProms = instances.map(async instance => {
-        // TODO: put fail safe timer on here
-        while (instance.messageStore.length !== config.initialMessageCount * (clients.length - 1)) {
-            logger.debug(
-                {
-                    id: instance.id,
-                    wanted: config.initialMessageCount * (clients.length - 1),
-                    current: instance.messageStore.length,
-                },
-                'waiting for messages'
-            );
-            await new Promise<void>(resolve => setTimeout(resolve, 500));
-        }
-    });
-    await Promise.all(waitProms);
+    await Promise.all(timerWaitProms);
     logger.info('all messages received');
 
     // print

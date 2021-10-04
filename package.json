@@ -10,7 +10,7 @@
     "scripts": {
         "build": "tsc",
         "lint": "prettier --write \"src/**/*.ts\"",
-        "dev": "ts-node-dev --respawn --transpile-only src/index.ts -c testing -i 3 -w 1 ",
+        "dev": "ts-node-dev --respawn --transpile-only src/index.ts -c testing -i 3 -w 1 -l 5",
         "test": "echo \"100% code coverage, all passed\" && exit 0"
     },
     "author": "",
